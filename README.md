@@ -102,7 +102,7 @@ Feel free to:
 - ⭐ Star this repo if you find it helpful
 - 🔀 Fork it to start your own learning journey
 - 💬 Open issues with questions or suggestions
-- 🤝 Connect with me on [LinkedIn](YOUR-LINKEDIN-URL)
+- 🤝 Connect with me on [LinkedIn](www.linkedin.com/in/musa-bala-audu-o-d-57b906113/)
 
 ## 🌱 Why I'm Learning in Public
 
