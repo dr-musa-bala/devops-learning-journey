@@ -26,10 +26,8 @@ This project serves as a deep dive into Go’s high-concurrency model:
 ```bash
 go run main.go
 
-🧠 Future-Proofing
-
+🧠 Future-Proof
 ---
-
 ## 📊 Performance & Impact Metrics
 Numbers rule the world. Here is how this tool transforms the onboarding experience:
 
