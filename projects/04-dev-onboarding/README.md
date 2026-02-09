@@ -46,8 +46,3 @@ Following Jean-Paul Lizotte's advice on team autonomy, I’ve identified the nex
 1. **Automated Remediation:** Implement logic to trigger `brew install` or `choco install` if a tool is missing.
 2. **JSON Export:** Update the `CheckResult` struct to support JSON output for integration with CI/CD dashboards.
 3. **Network Audits:** Extend the `tools` map to include latency checks for internal VPNs and registries.
-To ensure the team can build on top of this tool, the logic is decoupled:
-
-Extensible: Simply add a new key to the tools map to check for kubectl, terraform, or ansible.
-
-Readable: Avoided complex frameworks to ensure any engineer can audit the source code.
