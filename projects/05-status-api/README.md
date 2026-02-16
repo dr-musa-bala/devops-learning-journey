@@ -1,4 +1,3 @@
----
 
 # 📡 DevOps Health Check API (Go-Powered Microservice)
 
@@ -60,6 +59,3 @@ go run main.go
 curl http://localhost:9000/health
 
 ```
-
----
-
