@@ -27,4 +27,4 @@ This project marks my transition from building standalone Go Microservices to ma
 3. Parse the JSON: `./read_json.sh`
 
 ## Screenshots
-![Go JSON Observability before and after power on](json_before_and_after_go_api_on.png) 
+![Go JSON Observability before and after power on](./json_before_and_after_go_api_on.png) 
