@@ -1,8 +1,8 @@
 #!/bin/bash
+WINDOWS_HOST_IP=$(ip route show | grep default | awk '{print $3}')
+API_URL="http://$WINDOWS_HOST_IP:8080/health"
 
-API_URL="http://localhost:8080/health"
-
-echo "📡 Fetching JSON Data..."
+echo "📡 Fetching JSON Data from Windows Host ($WINDOWS_HOST_IP)..."
 
 # 1. Capture the full JSON response into a variable
 RESPONSE=$(curl -s "$API_URL")
