@@ -29,3 +29,16 @@ This section documents the technical hurdles encountered during the containeriza
 * **Problem:** `Error: go.mod requires go >= 1.25.7 (running go 1.23.12)`.
 * **Discovery:** A version mismatch occurred between the Windows host and the Docker Alpine image.
 * **Resolution:** Modified `go.mod` to target `go 1.21`, ensuring backward compatibility.
+
+## 🎛 Phase 3: Orchestration & Configuration
+
+### 1. Introduction of Docker Compose
+To reduce operational friction, I migrated from manual `docker run` commands to **Docker Compose**. 
+* **Benefit:** Anyone can now initialize the entire stack with a single `docker compose up -d` command.
+* **Sustainability:** Every configuration (ports, restart policies, image names) is now version-controlled as Infrastructure as Code (IaC).
+
+### 2. Port Decoupling (9090 -> 8080)
+I implemented port mapping to decouple the host environment from the container internals.
+* **Host Port:** 9090
+* **Container Port:** 8080
+* **Reasoning:** This prevents port conflicts on the host machine and allows for side-by-side version testing.
