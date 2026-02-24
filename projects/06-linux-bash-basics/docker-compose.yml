@@ -1,0 +1,8 @@
+services:
+  health-api:
+    build: .
+    image: health-api:latest
+    container_name: health-api-service
+    ports:
+      - "8080:8080"
+    restart: always
