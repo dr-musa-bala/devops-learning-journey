@@ -42,3 +42,7 @@ I implemented port mapping to decouple the host environment from the container i
 * **Host Port:** 9090
 * **Container Port:** 8080
 * **Reasoning:** This prevents port conflicts on the host machine and allows for side-by-side version testing.
+
+### 3. Data Persistence (Volumes)
+* **Implementation:** Mounted `./logs` to `/app/logs`.
+* **Impact:** Ensured that application logs survive container restarts and crashes, allowing for external log aggregation and debugging without entering the container.

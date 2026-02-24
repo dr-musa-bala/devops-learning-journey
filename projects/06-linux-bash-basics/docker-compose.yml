@@ -5,4 +5,6 @@ services:
     container_name: health-api-service
     ports:
       - "9090:8080"
+    volumes:
+      - ./logs:/app/logs
     restart: always
