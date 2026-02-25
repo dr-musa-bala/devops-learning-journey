@@ -46,3 +46,12 @@ I implemented port mapping to decouple the host environment from the container i
 ### 3. Data Persistence (Volumes)
 * **Implementation:** Mounted `./logs` to `/app/logs`.
 * **Impact:** Ensured that application logs survive container restarts and crashes, allowing for external log aggregation and debugging without entering the container.
+
+## 🤖 Phase 4: Automated CI/CD Pipeline
+
+I have implemented a **GitHub Actions** pipeline to automate the Build-and-Push lifecycle.
+* **Automation:** Every push to `main` triggers a multi-platform build (`linux/amd64`, `linux/arm64`).
+* **Security:** Credentials are managed via **GitHub Secrets** (DOCKERHUB_TOKEN) to ensure no sensitive data is exposed.
+* **Versioning:** Automated tagging using **Git Commit SHAs** for 100% traceability from code to container.
+* **Registry:** Images are automatically pushed to my public Docker Hub repository, making the application "Cloud-Ready."
+.
