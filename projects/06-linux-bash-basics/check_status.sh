@@ -10,7 +10,7 @@ echo "---------------------------------------"
 # 1. 'curl' knocks on the door of your Go API
 # 2. 'grep' looks for the "200" success code in the response
 # 3. '> /dev/null' hides the messy technical details from the screen
-if curl -s --head "$API_URL" | grep "200" > /dev/null; then
+if [ $status == "UP"
     echo "✅ SUCCESS: Your Go API is UP and running."
     echo "Report: System Healthy."
 else
