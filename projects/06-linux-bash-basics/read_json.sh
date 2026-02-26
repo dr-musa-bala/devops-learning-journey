@@ -9,8 +9,8 @@ RESPONSE=$(curl -s "$API_URL")
 
 # 2. Use 'jq' to extract specific fields
 # The '.' means the root of the JSON object
-STATUS=$(echo $RESPONSE | jq -r '.status')
-MESSAGE=$(echo $RESPONSE | jq -r '.message')
+STATUS=$(echo "$RESPONSE" | jq -r '.status')
+MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
 
 echo "---------------------------------------"
 echo "API STATUS  : $STATUS"
