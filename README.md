@@ -144,3 +144,15 @@ Last commit: Just getting started!
 Next milestone: 10 days of consistent learning
 💪 Let's build something amazing, one day at a time.
 
+## 🤖 CI/CD Automation
+This repo is now automated! 
+
+- **Workflow:** `.github/workflows/main.yml`
+- **Docker Image:** `musabalaaudu/health-api:main`
+- **Port Mapping:** `-p 8080:8080`
+
+### Quick Commands
+```bash
+# Pull and Run the Cloud version
+docker pull musabalaaudu/health-api:main
+docker run -d -p 8080:8080 musabalaaudu/health-api:main
