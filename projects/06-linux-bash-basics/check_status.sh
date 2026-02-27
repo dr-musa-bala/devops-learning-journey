@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration: The address of your Go API
-API_URL="http://localhost:8080/health"
+API_URL="http://host.docker.internal:8080/health"
 
 echo "---------------------------------------"
 echo "🔍 DEVOPS SYSTEM CHECK IN PROGRESS..."
