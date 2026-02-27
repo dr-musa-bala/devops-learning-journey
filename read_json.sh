@@ -11,3 +11,4 @@ fi
 STATUS=$(jq -r '.status' "$1")
 
 echo "The system status is: $STATUS"
+# end of script
