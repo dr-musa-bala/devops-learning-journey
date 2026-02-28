@@ -1,10 +1,21 @@
+
 services:
+  # Service 1: The Go API (The Server)
   health-api:
     build: .
-    image: health-api:latest
+    image: musabalaaudu/health-api:latest
     container_name: health-api-service
     ports:
       - "9090:8080"
-    volumes:
-      - ./logs:/app/logs
     restart: always
+
+  # Service 2: The Health Checker (The Auditor)
+  auditor:
+    image: musabalaaudu/health-api:latest
+    container_name: health-auditor
+    depends_on:
+      - health-api
+    environment:
+      # MAGIC MOMENT: We use the service name 'health-api' instead of an IP!
+      - API_URL=http://health-api:8080/health
+    command: ["/bin/bash", "/app/check_status.sh"]

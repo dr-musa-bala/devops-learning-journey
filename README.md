@@ -270,3 +270,7 @@ docker run --rm \
 
 **Current Status**: All pipelines are **Green**. Docker Image is **Verified**.
 
+### 🚀 The Orchestrated Run (Recommended)
+No manual IP hunting required! Run the API and the Auditor together:
+```bash
+docker compose up --abort-on-container-exit
