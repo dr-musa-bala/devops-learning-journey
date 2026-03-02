@@ -1,21 +1,34 @@
+version: '3.8'
 
 services:
-  # Service 1: The Go API (The Server)
   health-api:
     build: .
-    image: musabalaaudu/health-api:latest
     container_name: health-api-service
     ports:
       - "9090:8080"
+    depends_on:
+      - redis-db
     restart: always
 
-  # Service 2: The Health Checker (The Auditor)
+  redis-db:
+    image: "redis:alpine"
+    container_name: redis-cache
+    # Port 6379 is internal, but mapping it allows you to see it from Windows
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
   auditor:
     image: musabalaaudu/health-api:latest
-    container_name: health-auditor
+    container_name: devops-auditor
     depends_on:
       - health-api
     environment:
-      # MAGIC MOMENT: We use the service name 'health-api' instead of an IP!
       - API_URL=http://health-api:8080/health
-    command: ["/bin/bash", "/app/check_status.sh"]
+    # MOUNT your local script into the container to overwrite the old one
+    volumes:
+      - ./check_status.sh:/app/check_status.sh
+    # Use 'sh' to be safe, and wait 15 seconds to ensure Go is fully ready
+    command: ["sh", "-c", "sleep 15 && bash /app/check_status.sh"]
+volumes:
+  redis_data:

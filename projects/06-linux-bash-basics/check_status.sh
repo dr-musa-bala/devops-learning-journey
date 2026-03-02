@@ -1,20 +1,29 @@
 #!/bin/bash
 
-# Use the API_URL variable if provided, otherwise default to localhost
-# This makes the script flexible for both local and Docker use!
-TARGET_URL=${API_URL:-"http://localhost:8080/health"}
+# Configuration
+URL=${API_URL:-"http://localhost:8080/health"}
+MAX_ATTEMPTS=5
+SLEEP_TIME=2
 
 echo "---------------------------------------"
 echo "🔍 DEVOPS SYSTEM CHECK IN PROGRESS..."
-echo "Target: $TARGET_URL"
+echo "Target: $URL"
 echo "---------------------------------------"
 
-# Use a standard GET and check for the word "Healthy"
-if curl -s "$TARGET_URL" | grep -q "Healthy"; then
-    echo "✅ SUCCESS: Your Go API is UP."
-else
-    echo "❌ ALERT: The Go API is DOWN."
-fi
+for ((i=1; i<=MAX_ATTEMPTS; i++)); do
+    # -s: silent, -o: ignore body, -w: return only status code
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL")
 
+    if [ "$STATUS" == "200" ]; then
+        echo "✅ SUCCESS: Your Go API is UP (Attempt $i)."
+        echo "---------------------------------------"
+        exit 0
+    fi
+
+    echo "⏳ Attempt $i/$MAX_ATTEMPTS: API not ready (Status: $STATUS). Retrying in ${SLEEP_TIME}s..."
+    sleep $SLEEP_TIME
+done
+
+echo "❌ ALERT: The Go API is DOWN after $MAX_ATTEMPTS attempts."
 echo "---------------------------------------"
-echo "Check complete at: $(date)"
+exit 1
