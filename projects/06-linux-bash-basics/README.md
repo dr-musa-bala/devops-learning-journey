@@ -1,3 +1,32 @@
+# 🚀 Multi-Container Health API & System Auditor
+
+A containerized Go microservice architecture demonstrating high availability, data persistence, and automated system auditing using Docker Compose.
+
+## 🏗️ Architecture
+- **Go API**: A high-performance REST API tracking system interactions.
+- **Redis Cache**: An in-memory data store for visitor tracking and session persistence.
+- **Auditor Service**: An automated Bash-based health checker that verifies system integrity.
+
+## 🛠️ DevOps Features
+- **Persistence**: Implemented Docker Volumes to ensure Redis data survives container lifecycles.
+- **Service Discovery**: Utilized Docker's internal DNS for seamless inter-container communication.
+- **Environment Management**: Decoupled configuration using environment variables for portable deployments.
+- **Git Hygiene**: Optimized repository with `.gitignore` to prevent log bloat and sync conflicts.
+
+## 🚦 Getting Started
+
+### Prerequisites
+- Docker & Docker Compose
+- Git
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/dr-musa-bala/devops-learning-journey.git](https://github.com/dr-musa-bala/devops-learning-journey.git)
+   cd projects/06-linux-bash-basics
+
+---
+
 # 🐧 Linux Bash & Go: The Observability Pipeline
 
 This project marks my transition from building standalone Go Microservices to managing them via **Linux Systems Engineering**. I’ve built a bridge between high-performance compiled code (Go) and flexible system automation (Bash).
