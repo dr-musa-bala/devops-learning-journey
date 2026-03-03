@@ -13,7 +13,7 @@ STATUS=$(jq -r '.status' "$1")
 
 echo "The system status is: $STATUS"
 # end of script
-=======
+
 WINDOWS_HOST_IP=$(ip route show | grep default | awk '{print $3}')
 API_URL="http://$WINDOWS_HOST_IP:8080/health"
 
