@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*" ] # Triggers on version tags like v1.0.1
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: 'projects/06-linux-bash-basics'
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 1. Set up Docker Buildx (Essential for Multi-Platform)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. Extract Metadata (Standardizes naming/tagging)
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/health-api
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            latest
+
+      # 4. Build and Push (The Heavy Lifting)
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./projects/06-linux-bash-basics
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64 
+          cache-from: type=gha # Speeds up builds using GitHub's cache
+          cache-to: type=gha,mode=max
+
+
+

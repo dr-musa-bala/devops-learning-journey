@@ -7,50 +7,41 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-redis/redis/v8" // You'll need to run 'go get' for this
+	"github.com/go-redis/redis/v8"
 )
 
 var ctx = context.Background()
+var rdb *redis.Client
 
 func main() {
-	// 1. Get port from environment or default to 8080
-	port := os.Getenv("APP_PORT")
-	if port == "" {
-		port = "8080"
+	// 1. Setup Redis Client
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
 	}
 
-	// 2. Connect to Redis
-	// NOTE: "redis-db" matches the service name in docker-compose.yml
-	rdb := redis.NewClient(&redis.Options{
-		Addr: "redis-db:6379",
+	rdb = redis.NewClient(&redis.Options{
+		Addr: redisAddr,
 	})
-        // Inside your main function, right after connecting to Redis:
-err := rdb.Ping(ctx).Err()
-if err != nil {
-    log.Printf("⚠️ Redis not ready: %v", err)
-    // We DON'T use log.Fatal here so the API stays alive 
-    // and we can actually see the error in the browser/curl.
-} 
-else {
-    log.Println("✅ Successfully connected to Redis!")
-}
-	// 3. Define the Health Check (Existing)
+
+	// 2. Define Routes
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "OK")
 	})
 
-	// 4. NEW: The Visit Counter Endpoint
 	http.HandleFunc("/visit", func(w http.ResponseWriter, r *http.Request) {
-		// Increment the "hits" key in Redis
-		hits, err := rdb.Incr(ctx, "hits").Result()
+		val, err := rdb.Incr(ctx, "visitor_count").Result()
 		if err != nil {
-			http.Error(w, "Database Error", http.StatusInternalServerError)
+			http.Error(w, "Could not reach Redis", http.StatusInternalServerError)
 			return
 		}
-		fmt.Fprintf(w, "Hello! You are visitor number: %d\n", hits)
+		fmt.Fprintf(w, "Visitor count: %d", val)
 	})
 
-	log.Printf("📡 API starting on port %s...", port)
-	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, nil))
+	// 3. Start Server
+	port := "9090"
+	fmt.Printf("Server starting on port %s...\n", port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
+		log.Fatalf("Could not start server: %s\n", err)
+	}
 }
