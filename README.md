@@ -38,3 +38,8 @@ This project is a production-ready **Go + Redis** microservice stack.
 ```bash
 cd projects/06-linux-bash-basics
 docker-compose up --build
+
+---
+## 📖 Documentation
+- [Cloud Infrastructure Setup](./CLOUD_SETUP.md) - Detailed guide on how this app is hosted for free.
+- [API Reference](#) - (Coming soon: How to use the endpoints).
