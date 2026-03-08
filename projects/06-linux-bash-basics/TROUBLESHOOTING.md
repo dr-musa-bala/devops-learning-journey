@@ -1,7 +1,3 @@
-This is a professional move. Keeping a `TROUBLESHOOTING.md` in your `06-linux-bash-basics` folder turns a "bug" into a "knowledge base." It’s exactly the kind of "Systems Thinking" your mentor, Jean-Paul, would expect from a DevOps Engineer.
-
-Here is a clean, Markdown-formatted template you can copy directly into your project.
-
 ---
 
 ```markdown
