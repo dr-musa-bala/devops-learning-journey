@@ -1,4 +1,3 @@
-```markdown
 # 🛠 Troubleshooting Log: Redis Connectivity Issues
 
 ## Incident: "Too Many Colons" Connection Failure
@@ -60,3 +59,19 @@ To prevent "silent failures" in the future, the following "Bridge" logic was add
 ---
 
 ### 🚀 Next Step
+
+### 1. The Symptom 🚩
+The application failed to start on Render. The deployment logs showed the following error:
+
+![Error Log Screenshot](assets/error_before.png)
+
+### 3. The Resolution 🛠️
+#### B. Connection established
+Updated `main.go` to use the `redis.ParseURL()` function to handle the URI.
+
+![Log Screenshots of Successful connection](assets/log_after.png)
+
+### 4. Implementation of "Fail-Fast" & Observability 🛡️
+The app now executes `rdb.Ping(ctx)` before starting.
+
+![Success DB Connection Screenshot](assets/database_log.png)
