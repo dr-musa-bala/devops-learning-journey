@@ -14,16 +14,31 @@ var ctx = context.Background()
 var rdb *redis.Client
 
 func main() {
-	// 1. Setup Redis Client
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
+    // 1. Setup Redis Client
+    redisAddr := os.Getenv("REDIS_ADDR")
+    
+    // Log the address so we can see it in Render's logs (don't log the password!)
+    if redisAddr == "" {
+        fmt.Println("CRITICAL: REDIS_ADDR environment variable is NOT set. Falling back to localhost.")
+        redisAddr = "localhost:6379"
+    } else {
+        fmt.Printf("Attempting to connect to Redis at: %s\n", redisAddr)
+    }
 
-	rdb = redis.NewClient(&redis.Options{
-		Addr: redisAddr,
-	})
+    rdb = redis.NewClient(&redis.Options{
+        Addr: redisAddr,
+    })
 
+    // 2. Immediate Ping Test (The "Senior" Move)
+    ctx := context.Background()
+    _, err := rdb.Ping(ctx).Result()
+    if err != nil {
+        log.Fatalf("CRITICAL: Could not connect to Redis: %v", err)
+    }
+    fmt.Println("Successfully connected to Redis!")
+    
+    // ... the rest of your handlers and server start code ...
+}  
 	// 2. Define Routes
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "OK")
