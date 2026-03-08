@@ -1,5 +1,3 @@
----
-
 ```markdown
 # 🛠 Troubleshooting Log: Redis Connectivity Issues
 
