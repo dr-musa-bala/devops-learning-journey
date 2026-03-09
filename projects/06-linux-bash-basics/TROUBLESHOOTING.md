@@ -13,7 +13,7 @@ Upon deployment to the Render production environment, the service failed to ente
 **Error Signature:**
 > `CRITICAL: Could not connect to Redis: dial tcp: address [URL]: too many colons in address`
 
-![Error Log Screenshot](assets/error_before.png)
+![Error Log Screenshot](assets/log_before.png)
 
 ---
 
