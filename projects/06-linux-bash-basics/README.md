@@ -439,3 +439,61 @@ tail -f cron_log.log
 ---
 
 
+# 🚀 Observed Health-API & Automated Auditor
+**Sub-Project:** 06-linux-bash-basics (DevOps Journey)  
+**Infrastructure:** Docker, Go 1.25, Redis, Prometheus, Grafana  
+**Objective:** Deploy a self-healing microservice stack with automated health auditing and real-time observability.
+
+---
+
+## 🛠 1. Architecture Overview
+The system consists of five interconnected services running on a dedicated Docker bridge network:
+
+- **Health API (Go):** The core service providing health checks and Prometheus metrics.
+- **Redis DB:** A local key-value store acting as the health dependency.
+- **Auditor (Bash):** An automated script that validates API uptime.
+- **Prometheus:** Scrapes metrics from the API every 15 seconds.
+- **Grafana:** Visualizes the metrics collected by Prometheus.
+
+
+
+---
+
+## 🚧 2. Challenges & Resolutions
+
+### Challenge A: The "Non-Declaration" Syntax Error
+- **The Problem:** `main.go:58:1: syntax error: non-declaration statement outside function body`.
+- **The Cause:** Code was pasted outside the `func main()` closing bracket.
+- **The Resolution:** Refactored `main.go` to wrap all execution logic within the main function.
+
+### Challenge B: Go Version Mismatch
+- **The Problem:** `go.mod requires go >= 1.25.0 (running go 1.23.12)`.
+- **The Cause:** Docker base image (`golang:1.23-alpine`) was behind the local environment version.
+- **The Resolution:** Updated `Dockerfile` to `FROM golang:1.25-alpine` for environment parity.
+
+### Challenge C: Redis Handshake Failure
+- **The Problem:** API returned `{"status":"DOWN"}` with a connection timeout.
+- **The Cause:** Upstash (Cloud) required `rediss://` (TLS) and `ca-certificates` not present in the base Alpine image.
+- **The Resolution:** Pivoted to **Docker Service Discovery**. Updated `.env` to use the internal service: `REDIS_ADDR=redis://redis-db:6379`.
+
+### Challenge D: The Auditor "Race Condition"
+- **The Problem:** `devops-auditor` failed and exited before the API was fully compiled.
+- **The Resolution:** Implemented a **Self-Healing Policy** in `docker-compose.yml` using `restart: on-failure`.
+
+---
+
+## 🚀 3. Current System State
+- **API:** `http://localhost:9090/health` (**Status: UP**)
+- **Metrics:** Raw telemetry at `http://localhost:9090/metrics`
+- **Monitoring:** Prometheus Target Status: **HEALTHY**
+- **Auditor Logs:** Reporting "✅ API is healthy!"
+
+---
+
+## 📋 4. How to Restart the Stack
+```bash
+# Shutdown and remove volumes
+docker-compose down -v
+
+# Rebuild and start in detached mode
+docker-compose up --build -d
