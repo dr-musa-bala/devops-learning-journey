@@ -68,16 +68,16 @@ The alerting loop follows a three-stage process:
 ## Monitoring Status Screenshots
 
 ### Grafana Healthy
-![Healthy Grafana](docs/screenshots/healthy_grafana.png)
+![Healthy Grafana](screenshots/healthy_grafana.png)
 
 ### Grafana Unhealthy
-![Unhealthy Grafana](docs/screenshots/unhealthy_grafana.png)
+![Unhealthy Grafana](screenshots/unhealthy_grafana.png)
 
 ### Prometheus Down
-![Prometheus Down](docs/screenshots/prometheus_down.png)
+![Prometheus Down](screenshots/prometheus_down.png)
 
 ### Prometheus Up
-![Prometheus Up](docs/screenshots/prometheus_up.png)
+![Prometheus Up](screenshots/prometheus_up.png)
 
 ### Alert Resolved in Discord
-![Resolved Discord Alert](docs/screenshots/resolved_discord.png)
+![Resolved Discord Alert](screenshots/resolved_discord.png)
