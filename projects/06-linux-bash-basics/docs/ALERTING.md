@@ -64,12 +64,20 @@ The alerting loop follows a three-stage process:
 
 * **Industrialized Reliability:** Established a repeatable pattern that can be scaled to the other 50+ SaaS products in the portfolio.
 
-## Monitoring Workflow
 
-| Status | Screenshot |
-|------|------|
-| Grafana Healthy | ![](docs/screenshots/healthy_grafana.png) |
-| Grafana Unhealthy | ![](docs/screenshots/unhealthy_grafana.png) |
-| Prometheus Down | ![](docs/screenshots/prometheus_down.png) |
-| Prometheus Up | ![](docs/screenshots/prometheus_up.png) |
-| Discord Alert Resolved | ![](docs/screenshots/resolved_discord.png) |
+## Monitoring Status Screenshots
+
+### Grafana Healthy
+![Healthy Grafana](docs/screenshots/healthy_grafana.png)
+
+### Grafana Unhealthy
+![Unhealthy Grafana](docs/screenshots/unhealthy_grafana.png)
+
+### Prometheus Down
+![Prometheus Down](docs/screenshots/prometheus_down.png)
+
+### Prometheus Up
+![Prometheus Up](docs/screenshots/prometheus_up.png)
+
+### Alert Resolved in Discord
+![Resolved Discord Alert](docs/screenshots/resolved_discord.png)
