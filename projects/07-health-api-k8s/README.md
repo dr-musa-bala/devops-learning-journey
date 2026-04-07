@@ -261,11 +261,11 @@ Here is the comprehensive documentation of your "Project 07" journey, followed b
 ### System Status: UP
 When the application is running correctly, the Prometheus targets show a "Green" status and metrics flow into Grafana.
 
-![Prometheus Up Status](./prometheus.png)
+![Prometheus Up Status](./assets/prometheus.png)
 
 ---
 
 ### System Status: DOWN (Simulation)
 When the service is scaled to zero or fails, the monitoring stack immediately reflects the downtime.
 
-![Prometheus Down Status](./prometheus1.png)
+![Prometheus Down Status](./assets/prometheus1.png)
