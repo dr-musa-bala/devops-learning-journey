@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: health-app-service
+  labels:
+    app: health-api # This label must match your ServiceMonitor's selector
+spec:
+  ports:
+  - name: http        # Prometheus looks for this exact name
+    port: 80          # The port internal tools will use
+    targetPort: 9090  # The port your Go app is running on
+  selector:
+    app: health-api   # Must match the labels on your Deployment
