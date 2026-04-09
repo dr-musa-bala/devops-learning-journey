@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    environment {
+        // Defining variables for reuse and professionalism
+        IMAGE_NAME = "health-api"
+        IMAGE_TAG  = "latest"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Pulling code from the Source of Truth...'
+                // Jenkins pulls this automatically if configured via SCM
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                echo "Building Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Kubernetes Deployment') {
+            steps {
+                echo 'Deploying to Minikube using Flat Manifests...'
+                // Using your new naming convention directly
+                sh "kubectl apply -f k8s_deployment.yaml"
+                sh "kubectl apply -f k8s_service.yaml"
+            }
+        }
+
+        stage('Verification') {
+            steps {
+                echo 'Checking Deployment Status...'
+                sh "kubectl get pods -l app=health-api"
+                sh "kubectl get svc health-api-service"
+            }
+        }
+    }
+}
