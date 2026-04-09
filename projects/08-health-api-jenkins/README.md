@@ -89,3 +89,38 @@ Finished: SUCCESS
 
 ## 8. Conclusion
 Project 08 successfully transitioned from a broken, permission-locked environment to a **Hardened, Automated Pipeline**. By resolving the twists of GPG keys, Linux permissions, certificate paths, and file structure, we have realized a production-ready CI/CD workflow.
+
+To ensure your **Project 08 README** is a complete "Master Class" in troubleshooting, you should add these final three phases. These cover the specific "hidden" errors we solved regarding branch naming, nested paths, and the Docker environment mismatch.
+
+### 5. Phase V: Source Control & Branch Synchronization
+**Objective:** Transition from local testing to a GitHub-driven "Source of Truth."
+* **🚩 The "Master vs. Main" Twist:**
+    * **Challenge:** Pipeline failed with `GitException: Status code 128` during fetch.
+    * **The Cause:** Modern GitHub repositories use `main` as the default branch, but Jenkins legacy settings default to `master`.
+    * **The Rectification:** Explicitly updated the **Branch Specifier** to `*/main` in the Jenkins Job Configuration.
+* **🚩 The "Nested Path" Twist:**
+    * **Challenge:** Jenkins could not find the `Jenkinsfile`.
+    * **The Cause:** The file was located in a sub-directory (`projects/08-health-api-jenkins/`) rather than the repository root.
+    * **The Rectification:** Configured the **Script Path** in Jenkins to point to the specific sub-directory path.
+
+### 6. Phase VI: The Environment Sync (Docker-in-K8s)
+**Objective:** Resolve the "Image Visibility" gap between the builder and the orchestrator.
+* **🚩 The Container Boundary Twist:**
+    * **Challenge:** Pods stuck in `ErrImageNeverPull` status.
+    * **The Cause:** Jenkins built the Docker image in the **WSL2 host daemon**, but Minikube’s Kubelet was searching its own **isolated internal registry**.
+    * **The Rectification:** Modified the `Jenkinsfile` to include `dir()` blocks for context and injected `minikube docker-env` variables. By manually pointing `DOCKER_CERT_PATH` to the migrated certificates in `/var/lib/jenkins/`, we forced the build to happen **inside** the Minikube node.
+
+### 7. Phase VII: The Network Bridge (Final Validation)
+**Objective:** Confirm the API is reachable and reporting correct metadata from the "Kaduna Axis."
+* **🚩 The Network Island Twist:**
+    * **Challenge:** `curl` timed out when hitting the Minikube IP directly from WSL.
+    * **The Cause:** Network isolation between the WSL2 virtual bridge and the Minikube Docker-driver network.
+    * **The Rectification:** Implemented a **Minikube Tunnel** (`minikube service health-api-service`) to create a loopback bridge to `127.0.0.1`.
+* **Verification:** Confirmed the API correctly identifies its hardcoded deployment context:
+    ```json
+    {
+      "location": "Kaduna-Axis-DC",
+      "status": "UP",
+      "system": "Kubernetes-WSL"
+    }
+    ```
