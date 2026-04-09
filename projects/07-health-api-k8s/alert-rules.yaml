@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: health-app-critical-alert
+  labels:
+    role: alert-rules
+spec:
+  groups:
+  - name: health-api.rules
+    rules:
+    - alert: HealthAPIDown
+      expr: up{job="health-app-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Health API is DOWN"
+        description: "The service is not reachable. Check Pod status immediately."

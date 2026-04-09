@@ -269,3 +269,33 @@ When the application is running correctly, the Prometheus targets show a "Green"
 When the service is scaled to zero or fails, the monitoring stack immediately reflects the downtime.
 
 ![Prometheus Down Status](./assets/prometheus1.png)
+
+🚀 Project 07: Health API - Lessons Learned
+1. The "Traffic Light" Troubleshooting Flow
+If the monitoring is RED, check in this order:
+
+PODS: Are they Running? (kubectl get pods)
+
+ENDPOINTS: Is the Service linked to the Pods? (kubectl get ep)
+
+If <none>, labels are wrong!
+
+PORTS: Is the Service knocking on the right door? (Check targetPort)
+
+PROMETHEUS: Is the ServiceMonitor looking for the right labels?
+
+2. The "Handshake" Rule
+Everything stays green as long as these three match:
+
+Deployment Label: app: health-app-stack
+
+Service Selector: app: health-app-stack
+
+ServiceMonitor MatchLabel: app: health-app-stack
+
+3. Quick Recovery Commands
+Clear Port 9090: sudo lsof -i :9090 then kill -9 <PID>
+
+Restart the "Brain": kubectl delete pod -l app.kubernetes.io/name=prometheus-operator -n monitoring
+
+Test the App: kubectl run curl-test --image=curlimages/curl -i --rm -- curl <svc-url>

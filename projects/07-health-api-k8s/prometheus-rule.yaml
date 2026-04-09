@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: health-app-alerts
+  namespace: monitoring
+  labels:
+    release: monitoring  # <--- This now matches your ruleSelector exactly
+spec:
+  groups:
+  - name: health-api.rules
+    rules:
+    - alert: HealthServiceDown
+      expr: up{job="health-app-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "CRITICAL: Health API is unreachable"
+        description: "The service 'health-app-service' has been down for more than 1 minute."

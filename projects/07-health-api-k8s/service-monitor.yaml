@@ -1,14 +1,17 @@
+cat <<EOF | kubectl apply -f -
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: health-api-monitor
+  namespace: default
   labels:
     release: monitoring
 spec:
+  endpoints:
+  - interval: 15s
+    path: /health        # Changed from /metrics to /health
+    port: web           # We will name the port 'web' in the service
   selector:
     matchLabels:
-      app: health-api
-  endpoints:
-  - port: http
-    path: /metrics
-    interval: 15s
+      app: health-app-stack # Matches your actual app label
+EOF
