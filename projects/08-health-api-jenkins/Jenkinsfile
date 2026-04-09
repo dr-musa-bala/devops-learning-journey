@@ -15,12 +15,18 @@ pipeline {
             }
         }
 
-        stage('Docker Build') {
+	stage('Docker Build') {
             steps {
-                // This 'dir' block is the fix!
                 dir("${PROJECT_PATH}") {
-                    echo "Building Docker Image: ${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                    echo "Building Docker Image inside Minikube Environment..."
+                    sh '''
+                        # Manually pointing to the certificates we migrated for Jenkins
+                        export DOCKER_TLS_VERIFY="1"
+                        export DOCKER_HOST="tcp://127.0.0.1:62101"
+                        export DOCKER_CERT_PATH="/var/lib/jenkins/.minikube/certs"
+                        
+                        docker build -t health-api:latest .
+                    '''
                 }
             }
         }
