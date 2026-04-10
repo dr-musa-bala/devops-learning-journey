@@ -15,18 +15,17 @@ spec:
       containers:
       - name: health-api
         image: health-api:latest
-        imagePullPolicy: Always # <--- THIS IS THE CRITICAL LINE
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
         env:
         - name: APP_LOCATION
           value: "Lagos-Data-Center"
-        
-         livenessProbe:
+        livenessProbe:
           httpGet:
             path: /health
             port: 80
-          initialDelaySeconds: 20  # Give it 20 seconds to start up
+          initialDelaySeconds: 20
           periodSeconds: 10
         readinessProbe:
           httpGet:
