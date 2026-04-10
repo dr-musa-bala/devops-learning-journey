@@ -12,9 +12,9 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                echo '🚀 Building the Docker Image...'
-                // Building the image using the specific Phase 09 Dockerfile
-                sh "docker build -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/"
+                echo '🚀 Building the Docker Image (Force Refresh)...'
+                // Adding --no-cache ensures Docker actually reads your new app.py
+                sh "docker build --no-cache -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/"
             }
         }
 

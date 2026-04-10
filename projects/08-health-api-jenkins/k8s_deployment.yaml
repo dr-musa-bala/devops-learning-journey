@@ -21,3 +21,16 @@ spec:
         env:
         - name: APP_LOCATION
           value: "Lagos-Data-Center"
+        
+         livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 20  # Give it 20 seconds to start up
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 10
