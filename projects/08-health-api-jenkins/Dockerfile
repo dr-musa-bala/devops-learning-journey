@@ -1,18 +1,14 @@
-# Use a lightweight Python image
-FROM python:3.11-slim
+FROM python:3.9-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# --- This is the part that handles the new library ---
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+# -----------------------------------------------------
 
-# Copy the application code
-COPY app.py .
+COPY . .
 
-# Expose the port the app runs on
+# Your existing lines:
 EXPOSE 80
-
-# Run the application
 CMD ["python", "app.py"]
