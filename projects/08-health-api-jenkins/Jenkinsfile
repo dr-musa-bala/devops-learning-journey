@@ -2,64 +2,51 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "health-api"
-        IMAGE_TAG  = "latest"
-        // Define the project path for reuse
-        PROJECT_PATH = "projects/08-health-api-jenkins"
+        // Defining the image name to keep the script clean
+        DOCKER_IMAGE = "health-api:latest"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo 'Pulling code from the Source of Truth...'
+                // Pulling the latest code from your GitHub repository
+                git 'https://github.com/dr-musa/devops-learning-journey.git'
             }
         }
 
-	stage('Docker Build') {
+        stage('Docker Build') {
             steps {
-                dir("${PROJECT_PATH}") {
-                    echo "Building Docker Image inside Minikube Environment..."
-                    sh '''
-                        # Manually pointing to the certificates we migrated for Jenkins
-                        export DOCKER_TLS_VERIFY="1"
-                        export DOCKER_HOST="tcp://127.0.0.1:62101"
-                        export DOCKER_CERT_PATH="/var/lib/jenkins/.minikube/certs"
-                        
-                        docker build -t health-api:latest .
-                    '''
-                }
+                echo 'Building the Docker Image...'
+                // Building with the new Port 80 configuration
+                sh "docker build -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/"
             }
         }
 
-        stage('Kubernetes Deployment') {
+        stage('Kubernetes Deploy') {
             steps {
-                dir("${PROJECT_PATH}") {
-                    echo 'Deploying to Minikube using Flat Manifests...'
-                    sh "kubectl apply -f k8s_deployment.yaml"
-                    sh "kubectl apply -f k8s_service.yaml"
-                }
-            }
-        }
-
-        stage('Verification') {
-            steps {
-                echo 'Checking Deployment Status...'
-                sh "kubectl get pods -l app=health-api"
+                echo 'Deploying to Minikube...'
+                // Applying the Dynamic Config (env variables) and Service (Port 80)
+                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml"
+                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml"
+                
+                echo 'Waiting for rollout to complete...'
+                sh "kubectl rollout status deployment/health-api"
             }
         }
     }
-}
 
-post {
+    // --- PHASE 10: INFRASTRUCTURE HYGIENE ---
+    post {
         always {
-            echo 'Performing post-build cleanup...'
-            // Remove the dangling images created during the build process
+            echo '🧹 Performing post-build cleanup...'
+            // This removes "dangling" image layers to reclaim that 4GB+ of space
             sh 'docker image prune -f'
         }
         success {
-            echo 'Pipeline completed successfully. Environment is Green!'
+            echo '✅ Pipeline completed successfully. Environment is Green & Lean!'
         }
         failure {
-            echo 'Pipeline failed. Check the logs for errors.'
+            echo '❌ Pipeline failed. Check the console logs for errors.'
         }
     }
+}
