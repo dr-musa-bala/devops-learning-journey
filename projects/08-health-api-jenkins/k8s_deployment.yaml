@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: health-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: health-api
@@ -15,7 +15,7 @@ spec:
       containers:
       - name: health-api
         image: health-api:latest
-        imagePullPolicy: Never
+        imagePullPolicy: Always # <--- THIS IS THE CRITICAL LINE
         ports:
         - containerPort: 80
         env:
