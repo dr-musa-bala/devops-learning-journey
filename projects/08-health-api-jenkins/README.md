@@ -124,3 +124,28 @@ To ensure your **Project 08 README** is a complete "Master Class" in troubleshoo
       "system": "Kubernetes-WSL"
     }
     ```
+Project Name: Health API - Dynamic Infrastructure MigrationObjective: Transition from static, hardcoded configurations to a dynamic, environment-aware CI/CD pipeline.1. Technical ArchitectureApplication: Flask-based Health API.Infrastructure: Kubernetes (Minikube) on WSL2.CI/CD: Jenkins (Automated Pipeline).Communication: Port 80 (Standard HTTP).2. Key TransformationsFeatureOld State (Phase 08)New State (Phase 09)Location LogicHardcoded in app.pyInjected via K8s env variablesNetwork PortPort 5000 (Development)Port 80 (Production Standard)ImportsMissing datetimeRobust os and datetime integrationDeploymentManual overwriteJenkins-managed Rolling Update3. Environment Variable MappingThe application now uses os.getenv("APP_LOCATION"). This allows the same container image to be deployed across different regions (e.g., Kaduna-Axis, Lagos, or Global Cloud) by simply changing the value in the k8s_deployment.yaml.
+
+Project Name: Health API - Infrastructure Hygiene & Self-Healing
+
+Status: Operational / Optimized
+
+1. Resource Optimization (Storage)
+Challenge: Continuous CI/CD builds were creating "Dangling Images" and filling the Build Cache, consuming 9.7GB of local storage.
+
+Solution: * Implemented an automated post-build cleanup in Jenkins using docker image prune -f.
+
+Performed a deep system purge using docker system prune -a --volumes to clear the legacy build cache.
+
+Result: Reclaimed ~7.2GB of disk space; reduced total image footprint from 9.7GB to 2.4GB.
+
+2. Self-Healing Infrastructure
+Feature: Added Kubernetes Liveness and Readiness Probes.
+
+Logic:
+
+Readiness: Ensures the API is fully loaded before allowing the Service to send traffic.
+
+Liveness: Automatically restarts the container if the /health endpoint stops responding.
+
+Benefit: Zero-downtime deployments and automated recovery from application hangs.
