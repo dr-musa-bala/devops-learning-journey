@@ -49,3 +49,17 @@ pipeline {
         }
     }
 }
+
+post {
+        always {
+            echo 'Performing post-build cleanup...'
+            // Remove the dangling images created during the build process
+            sh 'docker image prune -f'
+        }
+        success {
+            echo 'Pipeline completed successfully. Environment is Green!'
+        }
+        failure {
+            echo 'Pipeline failed. Check the logs for errors.'
+        }
+    }
