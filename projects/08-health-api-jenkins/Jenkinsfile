@@ -12,9 +12,9 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                echo '🚀 Building the Docker Image (Force Refresh)...'
-                // Adding --no-cache ensures Docker actually reads your new app.py
-                sh "docker build --no-cache -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/"
+                echo '🚀 Building the Docker Image inside Minikube...'
+                // eval $(minikube docker-env) connects this shell session to Minikube's Docker
+                sh 'eval $(minikube docker-env) && docker build --no-cache -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/'
             }
         }
 
