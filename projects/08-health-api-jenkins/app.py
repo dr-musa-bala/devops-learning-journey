@@ -1,16 +1,20 @@
-from flask import Flask, jsonify
-import datetime
+from flask import Flask
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 
-@app.route('/health', methods=['GET'])
+@app.route('/health')
 def health_check():
-    return jsonify({
+    # Get environment variable (default if not set)
+    location = os.getenv("APP_LOCATION", "Unknown-Location")
+    
+    return {
         "status": "UP",
-        "timestamp": datetime.datetime.now().isoformat(),
-        "location": "Kaduna-Axis-DC",
-        "system": "Kubernetes-WSL"
-    }), 200
+        "location": location,
+        "system": "Kubernetes-WSL",
+        "timestamp": datetime.now().isoformat()
+    }
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=80)
