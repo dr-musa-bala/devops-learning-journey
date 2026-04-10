@@ -2,34 +2,30 @@ pipeline {
     agent any
 
     environment {
-        // Defining the image name to keep the script clean
+        // Defining the image name to keep the script clean and reusable
         DOCKER_IMAGE = "health-api:latest"
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                // Pulling the latest code from your GitHub repository
-                git 'https://github.com/dr-musa/devops-learning-journey.git'
-            }
-        }
+        // Note: The 'Checkout' stage is handled automatically by Jenkins 
+        // using the SCM settings configured in the Pipeline job.
 
         stage('Docker Build') {
             steps {
-                echo 'Building the Docker Image...'
-                // Building with the new Port 80 configuration
+                echo '🚀 Building the Docker Image...'
+                // Building the image using the specific Phase 09 Dockerfile
                 sh "docker build -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/"
             }
         }
 
         stage('Kubernetes Deploy') {
             steps {
-                echo 'Deploying to Minikube...'
-                // Applying the Dynamic Config (env variables) and Service (Port 80)
+                echo '☸️ Deploying to Minikube...'
+                // Applying the Dynamic Config and the Port 80 Service
                 sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml"
                 sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml"
                 
-                echo 'Waiting for rollout to complete...'
+                echo '⏳ Waiting for rollout to complete...'
                 sh "kubectl rollout status deployment/health-api"
             }
         }
@@ -39,7 +35,8 @@ pipeline {
     post {
         always {
             echo '🧹 Performing post-build cleanup...'
-            // This removes "dangling" image layers to reclaim that 4GB+ of space
+            // This removes "dangling" image layers to reclaim disk space
+            // -f ensures the command doesn't pause for user confirmation
             sh 'docker image prune -f'
         }
         success {
