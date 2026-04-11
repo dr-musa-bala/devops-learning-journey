@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: health-api-monitor
+  namespace: monitoring
+  labels:
+    release: monitoring  # CRITICAL: This connects it to your stack
+spec:
+  selector:
+    matchLabels:
+      app: health-api    # Must match the label in your health-api-service
+  namespaceSelector:
+    matchNames:
+    - default           # Where your health-api app is running
+  endpoints:
+  - port: http          # We need to make sure your service port is named 'http'
+    path: /metrics
+    interval: 15s
