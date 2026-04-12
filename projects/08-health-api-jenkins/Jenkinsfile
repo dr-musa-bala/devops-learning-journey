@@ -31,15 +31,15 @@ pipeline {
 
         stage('Kubernetes Deploy') {
             steps {
-                echo "☸️ Stage 3: Deploying version ${IMAGE_TAG} to Minikube"
+                echo "☸️ Stage 3: Forcing deployment into the MONITORING namespace"
                 // Using // for comments outside of sh blocks
-                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml"
-                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml"
+                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml -n monitoring"
+                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml -n monitoring"
 
                 // The "Brain" update: pointing K8s to the new specific version
-                sh "kubectl set image deployment/health-api health-api=${DOCKER_IMAGE}"
+                sh "kubectl set image deployment/health-api health-api=${DOCKER_IMAGE} -n monitoring"
                 
-                sh "kubectl rollout status deployment/health-api"
+                sh "kubectl rollout status deployment/health-api -n monitoring"
             }
         }
     }
