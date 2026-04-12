@@ -149,3 +149,44 @@ Readiness: Ensures the API is fully loaded before allowing the Service to send t
 Liveness: Automatically restarts the container if the /health endpoint stops responding.
 
 Benefit: Zero-downtime deployments and automated recovery from application hangs.
+
+Troubleshooting & Lessons Learned
+🛠️ Troubleshooting & Engineering Logs
+During the deployment of the health-api via Jenkins, several architectural and configuration challenges were encountered and resolved.
+
+1. The "Command Not Found" (Path Disparity)
+The Error: Jenkins console reported minikube: command not found.
+
+The Cause: The minikube binary was installed in a local user directory (/home/dr-musa/.local/bin), which was not in the jenkins system user's $PATH.
+
+The Resolution: * Migrated the binary to a universal location: sudo cp /home/dr-musa/.local/bin/minikube /usr/local/bin/minikube.
+
+Explicitly defined the PATH within the Jenkinsfile environment block to ensure environment parity between the developer shell and the automation agent.
+
+2. Groovy Compilation Error (Syntax Conflict)
+The Error: unexpected char: '#' at the Kubernetes Deployment stage.
+
+The Cause: Attempted to use Bash-style comments (#) outside of a shell (sh) block. Jenkins pipelines use Groovy, which requires // for comments.
+
+The Resolution: Refactored the Jenkinsfile to use standard Groovy comment syntax for script logic and reserved # strictly for multi-line shell scripts.
+
+3. The "Ghost" Deployment (Namespace Isolation)
+The Error: Pipeline finished successfully, but kubectl get pods -n monitoring showed no new pods.
+
+The Cause: The deployment defaults to the default namespace if not specified. The pods were being created, but in the wrong "room."
+
+The Resolution: * Updated all kubectl commands in the pipeline with the explicit -n monitoring flag.
+
+Standardized the deployment target to ensure the API sits alongside the Prometheus/Grafana stack for better observability.
+
+4. NodePort Resource Contention
+The Error: spec.ports[0].nodePort: Invalid value: 30080: provided port is already allocated.
+
+The Cause: A previous service instance in the default namespace was still squatting on the physical port 30080.
+
+The Resolution: * Identified the conflict using kubectl get svc --all-namespaces.
+
+Performed a manual eviction of the stale service: kubectl delete svc health-api-service -n default.
+
+Re-ran the pipeline to allow the new service to claim the port in the monitoring namespace.
+
