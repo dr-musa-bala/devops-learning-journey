@@ -2,10 +2,8 @@ pipeline {
     agent any
 
     environment {
-        // THE VERSION: Unique ID for every build
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         DOCKER_IMAGE = "health-api:${IMAGE_TAG}"
-        // THE PATH: Standard global locations
         PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
     }
 
@@ -21,9 +19,8 @@ pipeline {
             steps {
                 echo "🚀 Stage 2: Building image version ${IMAGE_TAG}"
                 sh '''
-                    # This now works globally because minikube is in /usr/local/bin
+                    # This is a Bash block, so # is okay here
                     eval $(minikube docker-env)
-                    
                     docker build -t ${DOCKER_IMAGE} \
                                  -t health-api:latest \
                                  -f projects/08-health-api-jenkins/Dockerfile \
@@ -35,10 +32,11 @@ pipeline {
         stage('Kubernetes Deploy') {
             steps {
                 echo "☸️ Stage 3: Deploying version ${IMAGE_TAG} to Minikube"
+                // Using // for comments outside of sh blocks
                 sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml"
                 sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml"
 
-                # The "Brain" update: pointing K8s to the new specific version
+                // The "Brain" update: pointing K8s to the new specific version
                 sh "kubectl set image deployment/health-api health-api=${DOCKER_IMAGE}"
                 
                 sh "kubectl rollout status deployment/health-api"
