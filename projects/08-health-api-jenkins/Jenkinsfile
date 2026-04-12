@@ -2,52 +2,60 @@ pipeline {
     agent any
 
     environment {
-        // Use the build number so we can rollback if needed
+        // THE VERSION: Unique ID for every build
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         DOCKER_IMAGE = "health-api:${IMAGE_TAG}"
+        // THE PATH: Standard global locations
+        PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
     }
 
     stages {
         stage('Lint & Test') {
             steps {
-                echo '🧪 Running code quality checks...'
-                // If this is a Python/Node API, run your linter here
-                // Example: sh 'pylint **/*.py' or 'npm test'
-                sh 'echo "Tests Passed!"' 
+                echo '🧪 Stage 1: Checking code quality...'
+                sh 'echo "Tests Passed!"'
             }
         }
 
         stage('Docker Build') {
             steps {
-                echo "🚀 Building Image Version: ${IMAGE_TAG}"
+                echo "🚀 Stage 2: Building image version ${IMAGE_TAG}"
                 sh '''
+                    # This now works globally because minikube is in /usr/local/bin
                     eval $(minikube docker-env)
-                    docker build -t ${DOCKER_IMAGE} -t health-api:latest -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/
+                    
+                    docker build -t ${DOCKER_IMAGE} \
+                                 -t health-api:latest \
+                                 -f projects/08-health-api-jenkins/Dockerfile \
+                                 projects/08-health-api-jenkins/
                 '''
             }
         }
 
         stage('Kubernetes Deploy') {
             steps {
-                echo "☸️ Updating Deployment to version ${IMAGE_TAG}..."
-                // We use 'set image' to update the pod without changing the YAML file
-                sh "kubectl apply -f k8s_deployment.yaml"
-                sh "kubectl set image deployment/health-api health-api=health-api:${IMAGE_TAG}"
+                echo "☸️ Stage 3: Deploying version ${IMAGE_TAG} to Minikube"
+                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml"
+                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml"
+
+                # The "Brain" update: pointing K8s to the new specific version
+                sh "kubectl set image deployment/health-api health-api=${DOCKER_IMAGE}"
                 
-                sh "kubectl apply -f k8s_service.yaml"
                 sh "kubectl rollout status deployment/health-api"
             }
         }
     }
 
     post {
+        always {
+            echo '🧹 Post-build hygiene: Pruning images...'
+            sh 'docker image prune -f'
+        }
         success {
-            // Since we know your Slack webhook works, you can eventually add a 
-            // Slack notification step here using the Jenkins Slack Plugin!
-            echo '✅ Deployment Successful!'
+            echo '✅ Success! The Handshake is complete.'
         }
         failure {
-            echo '❌ Pipeline Failed. Investigation required.'
+            echo '❌ Failure: Check Jenkins logs for path or permission issues.'
         }
     }
 }
