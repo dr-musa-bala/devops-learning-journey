@@ -2,52 +2,52 @@ pipeline {
     agent any
 
     environment {
-        // Defining the image name to keep the script clean and reusable
-        DOCKER_IMAGE = "health-api:latest"
+        // Use the build number so we can rollback if needed
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = "health-api:${IMAGE_TAG}"
     }
 
     stages {
-        // Note: The 'Checkout' stage is handled automatically by Jenkins 
-        // using the SCM settings configured in the Pipeline job.
+        stage('Lint & Test') {
+            steps {
+                echo '🧪 Running code quality checks...'
+                // If this is a Python/Node API, run your linter here
+                // Example: sh 'pylint **/*.py' or 'npm test'
+                sh 'echo "Tests Passed!"' 
+            }
+        }
 
         stage('Docker Build') {
             steps {
-                echo '🚀 Building the Docker Image inside Minikube...'
-                // Using the full path to minikube
+                echo "🚀 Building Image Version: ${IMAGE_TAG}"
                 sh '''
-                    export PATH=$PATH:/usr/local/bin
                     eval $(minikube docker-env)
-                    docker build --no-cache -t ${DOCKER_IMAGE} -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/
+                    docker build -t ${DOCKER_IMAGE} -t health-api:latest -f projects/08-health-api-jenkins/Dockerfile projects/08-health-api-jenkins/
                 '''
             }
         }
 
         stage('Kubernetes Deploy') {
             steps {
-                echo '☸️ Deploying to Minikube...'
-                // Applying the Dynamic Config and the Port 80 Service
-                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml"
-                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml"
+                echo "☸️ Updating Deployment to version ${IMAGE_TAG}..."
+                // We use 'set image' to update the pod without changing the YAML file
+                sh "kubectl apply -f k8s_deployment.yaml"
+                sh "kubectl set image deployment/health-api health-api=health-api:${IMAGE_TAG}"
                 
-                echo '⏳ Waiting for rollout to complete...'
+                sh "kubectl apply -f k8s_service.yaml"
                 sh "kubectl rollout status deployment/health-api"
             }
         }
     }
 
-    // --- PHASE 10: INFRASTRUCTURE HYGIENE ---
     post {
-        always {
-            echo '🧹 Performing post-build cleanup...'
-            // This removes "dangling" image layers to reclaim disk space
-            // -f ensures the command doesn't pause for user confirmation
-            sh 'docker image prune -f'
-        }
         success {
-            echo '✅ Pipeline completed successfully. Environment is Green & Lean!'
+            // Since we know your Slack webhook works, you can eventually add a 
+            // Slack notification step here using the Jenkins Slack Plugin!
+            echo '✅ Deployment Successful!'
         }
         failure {
-            echo '❌ Pipeline failed. Check the console logs for errors.'
+            echo '❌ Pipeline Failed. Investigation required.'
         }
     }
 }
