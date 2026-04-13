@@ -239,3 +239,62 @@ To prevent "Noisy Neighbor" syndrome and ensure cluster stability, we implemente
 * **Resolution:** Adjusted `initialDelaySeconds` for the Liveness probe to 20s to allow the Python interpreter and Flask server enough time to fully initialize before Kubernetes begins monitoring.
 
 ---
+This troubleshooting phase is a vital part of your project history. It marks the transition from "it works on my machine" to "it works under the strict rules of Kubernetes." 
+
+Here is the comprehensive documentation for the **Port Conflict** and **ConfigMap Integration** phase.
+
+---
+
+## 🛠️ Troubleshooting & Configuration Decoupling Log
+
+### 1. The "Port Mismatch" Crisis
+**Issue:** After implementing health probes, the application entered a `CrashLoopBackOff` state. Jenkins reported that the deployment "exceeded its progress deadline."
+
+**Diagnostic Steps:**
+* **Command:** `kubectl describe pod [POD_NAME] -n monitoring`
+* **Finding:** The Events log showed `Liveness probe failed: connect: connection refused`.
+* **The "Aha!" Moment:** The application logs confirmed the Flask app was listening on **Port 80**, but the Kubernetes manifest was instructing the cluster to check **Port 5000**. 
+
+**Resolution:**
+* Updated `k8s_deployment.yaml` to point both `livenessProbe` and `readinessProbe` to **Port 80**.
+* Verified the fix by checking the pod status; the `Exit Code 137` (Forced Kill) disappeared and was replaced by a `Running` status.
+
+
+
+---
+
+### 2. Environment Decoupling (ConfigMaps)
+To follow "Twelve-Factor App" best practices, we moved hardcoded environment variables out of the deployment logic and into a managed Kubernetes object.
+
+**Implementation:**
+* **Artifact:** Created `k8s_configmap.yaml` to store key-value pairs like `APP_LOCATION`.
+* **Integration:** Used `valueFrom` and `configMapKeyRef` in the Deployment manifest to inject these variables at runtime.
+
+**Benefit to the Team:**
+* **Zero-Rebuild Config:** We can now change the application's "Location" or "Environment Name" by updating a single ConfigMap without needing to re-build the Docker image or modify the core Deployment code.
+
+---
+
+### 3. Key Challenges & Technical Lessons
+
+| Challenge | Root Cause | Resolution |
+| :--- | :--- | :--- |
+| **CrashLoopBackOff** | Port Mismatch (App on 80, Probe on 5000) | Synchronized Probe ports to match Flask configuration. |
+| **Exit Code 137** | Liveness Probe failure threshold met | Corrected the port so the probe received a `200 OK` heartbeat. |
+| **`sh` Command Errors** | Confusion between Jenkins Pipeline syntax and Linux Shell | Removed `sh` prefix and quotes when running commands directly in the Ubuntu terminal. |
+
+---
+
+### 💡 Pro-Tip: The "Previous" Log Trick
+One of the most valuable tools discovered during this phase was the `--previous` flag:
+`kubectl logs [POD_NAME] --previous`
+
+This allowed us to see exactly why the container crashed *before* it restarted, which is the only way to catch "silent" Python errors in a fast-cycling crash loop.
+
+---
+
+### 🏁 Final Verification Checklist
+1. [x] Flask app listening on **Port 80**.
+2. [x] Kubernetes Probes checking **Port 80**.
+3. [x] `APP_LOCATION` pulled dynamically from **ConfigMap**.
+4. [x] Resource limits set to **128Mi** to ensure cluster stability.
