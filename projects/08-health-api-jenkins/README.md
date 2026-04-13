@@ -150,7 +150,7 @@ Liveness: Automatically restarts the container if the /health endpoint stops res
 
 Benefit: Zero-downtime deployments and automated recovery from application hangs.
 
-Troubleshooting & Lessons Learned
+# Troubleshooting & Lessons Learned
 🛠️ Troubleshooting & Engineering Logs
 During the deployment of the health-api via Jenkins, several architectural and configuration challenges were encountered and resolved.
 
@@ -190,3 +190,52 @@ Performed a manual eviction of the stale service: kubectl delete svc health-api-
 
 Re-ran the pipeline to allow the new service to claim the port in the monitoring namespace.
 
+
+## 🛡️ Resilience & Resource Governance Documentation
+
+### 1. Health Monitoring (Liveness & Readiness Probes)
+To ensure the application is self-healing and high-performing, we implemented Kubernetes Probes. These allow the cluster to monitor the actual "health" of the Flask process rather than just the state of the container.
+
+#### **A. Readiness Probe**
+* **Purpose:** Determines if the pod is ready to accept client traffic.
+* **Mechanism:** Checks the `/health` endpoint on Port 80 every 5 seconds.
+* **Impact:** If the probe fails (e.g., during a slow startup or database reconnection), Kubernetes removes the pod from the Service load balancer so users don't see 500 errors.
+
+#### **B. Liveness Probe**
+* **Purpose:** Determines if the pod is "alive" or stuck in a deadlocked state.
+* **Mechanism:** Checks the `/health` endpoint on Port 80 every 10 seconds (after an initial 20-second delay).
+* **Impact:** If the app freezes, Kubernetes automatically kills and restarts the pod to restore service.
+
+
+
+---
+
+### 2. Resource Quotas (Requests & Limits)
+To prevent "Noisy Neighbor" syndrome and ensure cluster stability, we implemented strict resource boundaries.
+
+| Metric | Request (Guaranteed) | Limit (Maximum) |
+| :--- | :--- | :--- |
+| **CPU** | 100m (0.1 Core) | 200m (0.2 Core) |
+| **Memory** | 64Mi | 128Mi |
+
+* **Logic:** By setting these values, we ensure the `monitoring` namespace remains stable. If the Health API encounters a memory leak, it will be capped at 128Mi and restarted (OOMKilled) before it can impact other services like Grafana or Prometheus.
+
+---
+
+### 3. Engineering Challenges & Resolutions
+
+#### **Challenge A: The Port 80 vs 5000 Ambiguity**
+* **Issue:** Standard Flask applications run on port 5000, but our probes were targeting port 80.
+* **Diagnostic:** Checked internal logs using `kubectl logs [POD_NAME]`.
+* **Resolution:** Confirmed the application was explicitly bound to `0.0.0.0:80` within the code/Dockerfile. We synchronized the probe configuration to target Port 80 to ensure the "Manager" was knocking on the correct "Chef's" door.
+
+#### **Challenge B: Minimalist Image Restrictions (The "No-Tool" Container)**
+* **Issue:** Attempted to simulate a crash using `pkill` and `kill` via `kubectl exec`, but both commands were missing from the `$PATH`.
+* **Diagnostic:** The image is based on a "slim" distribution for security, which lacks standard process-management utilities.
+* **Resolution:** Conducted "Chaos Engineering" from the control-plane level by deleting the pod manually. This successfully verified the **ReplicaSet** logic, as a new pod was instantly provisioned to maintain the desired state.
+
+#### **Challenge C: Probe Delay Calibration**
+* **Issue:** Pods initially reporting "Unhealthy" during the first few seconds of deployment.
+* **Resolution:** Adjusted `initialDelaySeconds` for the Liveness probe to 20s to allow the Python interpreter and Flask server enough time to fully initialize before Kubernetes begins monitoring.
+
+---

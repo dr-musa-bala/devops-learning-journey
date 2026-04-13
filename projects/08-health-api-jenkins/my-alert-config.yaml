@@ -1,0 +1,26 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: email-config
+  namespace: monitoring
+  labels:
+    alertmanagerConfig: monitoring
+spec:
+  route:
+    receiver: 'email-notifications'
+    groupBy: ['alertname']
+    groupWait: 30s
+    groupInterval: 5m
+    repeatInterval: 1h
+  receivers:
+  - name: 'email-notifications'
+    emailConfigs:
+    - to: 'peaceautomate@gmail.com'
+      from: 'peaceautomate@gmail.com'
+      smarthost: 'smtp.gmail.com:587'
+      authUsername: 'peaceautomate@gmail.com'
+      authPassword:
+        name: alertmanager-email-auth
+        key: password
+      # Fixed the casing here to 'requireTLS'
+      requireTLS: true

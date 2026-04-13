@@ -1,0 +1,22 @@
+alertmanager:
+  config:
+    global:
+      resolve_timeout: 5m
+      smtp_smarthost: 'smtp.gmail.com:587'
+      smtp_from: 'peaceautomate@gmail.com'
+      smtp_auth_username: 'peaceautomate@gmail.com'
+      smtp_auth_password: 'shavgehuofhcjjhj'
+      smtp_require_tls: true
+
+    route:
+      group_by: ['alertname']
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 1h
+      receiver: 'email-notifications'
+
+    receivers:
+    - name: 'email-notifications'
+      email_configs:
+      - to: 'peaceautomate@gmail.com'
+        send_resolved: true

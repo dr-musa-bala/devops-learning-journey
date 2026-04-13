@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: health-api-rules
+  namespace: monitoring
+  labels:
+    release: monitoring # Must match your kube-prometheus-stack release name
+spec:
+  groups:
+  - name: health-api.rules
+    rules:
+    - alert: HighErrorRate
+      expr: |
+        sum(rate(flask_http_request_total{status="404"}[1m])) > 0.5
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High 404 error rate detected on {{ $labels.instance }}"
+        description: "The 404 error rate is above 0.5/sec for more than 1 minute."
