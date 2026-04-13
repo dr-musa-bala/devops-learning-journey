@@ -15,6 +15,20 @@ spec:
       containers:
       - name: health-api
         image: health-api:latest
+
+        env:
+        - name: APP_LOCATION
+          valueFrom:
+            configMapKeyRef:
+              name: health-api-config
+              key: APP_LOCATION
+
+        - name: SYSTEM_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: health-api-config
+              key: SYSTEM_ENV
+
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
@@ -40,5 +54,10 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
         env:
-        - name: APP_LOCATION
-          value: "Lagos-Data-Center"
+        # ✅ USE THIS (The dynamic, ConfigMap way)
+
+          - name: APP_LOCATION
+            valueFrom:
+              configMapKeyRef:
+                name: health-api-config
+                key: APP_LOCATION
