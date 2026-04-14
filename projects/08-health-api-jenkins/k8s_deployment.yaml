@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: health-api
+  namespace: monitoring
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: health-api
@@ -14,21 +15,7 @@ spec:
     spec:
       containers:
       - name: health-api
-        image: health-api:latest
-
-        env:
-        - name: APP_LOCATION
-          valueFrom:
-            configMapKeyRef:
-              name: health-api-config
-              key: APP_LOCATION
-
-        - name: SYSTEM_ENV
-          valueFrom:
-            configMapKeyRef:
-              name: health-api-config
-              key: SYSTEM_ENV
-
+        image: health-api:31
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
@@ -39,25 +26,28 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "200m"
-
+        env:
+        - name: APP_LOCATION
+          valueFrom:
+            configMapKeyRef:
+              name: health-api-config
+              key: APP_LOCATION
         livenessProbe:
           httpGet:
             path: /health
             port: 80
           initialDelaySeconds: 20
           periodSeconds: 10
-
         readinessProbe:
           httpGet:
             path: /health
             port: 80
           initialDelaySeconds: 15
           periodSeconds: 10
-        env:
-        # ✅ USE THIS (The dynamic, ConfigMap way)
-
-          - name: APP_LOCATION
-            valueFrom:
-              configMapKeyRef:
-                name: health-api-config
-                key: APP_LOCATION
+        volumeMounts:
+        - name: storage-volume
+          mountPath: /app/data
+      volumes:
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: health-api-pvc
