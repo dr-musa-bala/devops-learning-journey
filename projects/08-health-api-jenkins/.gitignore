@@ -1,0 +1,8 @@
+# Kubernetes Secrets (NEVER COMMIT THESE)
+k8s_secrets.yaml
+*.secret
+*.env
+
+# Windows/OS Metadata
+Thumbs.db
+.DS_Store
