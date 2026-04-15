@@ -1,0 +1,23 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.test
+*.out
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test folders
+Images/
+Documents/
+Videos/
+Music/
+Others/
+*.log
