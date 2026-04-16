@@ -2,55 +2,145 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
-        DOCKER_IMAGE = "health-api:${IMAGE_TAG}"
-        PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
+        // Replace with your actual Docker Hub ID
+        DOCKER_HUB_USER = 'musabalaaudu' 
+        APP_NAME = 'health-api'
+        // Tagging images with build numbers ensures traceability
+        IMAGE_TAG = "${env.BUILD_NUMBER}" 
+        K8S_NAMESPACE = 'monitoring'
     }
 
     stages {
-        stage('Lint & Test') {
+        stage('🧹 Cleanup Workspace') {
             steps {
-                echo '🧪 Stage 1: Checking code quality...'
-                sh 'echo "Tests Passed!"'
+                cleanWs()
+                echo 'Workspace cleaned and ready.'
             }
         }
 
-        stage('Docker Build') {
+        stage('🛠️ Build Docker Image') {
             steps {
-                echo "🚀 Stage 2: Building image version ${IMAGE_TAG}"
-                sh '''
-                    # This is a Bash block, so # is okay here
-                    eval $(minikube docker-env)
-                    docker build -t ${DOCKER_IMAGE} \
-                                 -t health-api:latest \
-                                 -f projects/08-health-api-jenkins/Dockerfile \
-                                 projects/08-health-api-jenkins/
-                '''
+                script {
+                    echo "Building Docker Image: ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
+                    sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
+                    // Also tag as latest for convenience
+                    sh "docker tag ${DOpipeline {
+    agent any
+
+    environment {
+        // Replace with your actual Docker Hub ID
+        DOCKER_HUB_USER = 'musabalaaudu' 
+        APP_NAME = 'health-api'
+        // Tagging images with build numbers ensures traceability
+        IMAGE_TAG = "${env.BUILD_NUMBER}" 
+        K8S_NAMESPACE = 'monitoring'
+    }
+
+    stages {
+        stage('🧹 Cleanup Workspace') {
+            steps {
+                cleanWs()
+                echo 'Workspace cleaned and ready.'
             }
         }
 
-        stage('Kubernetes Deploy') {
+        stage('🛠️ Build Docker Image') {
             steps {
-                echo "☸️ Stage 3: Forcing deployment into the MONITORING namespace"
-                // Using // for comments outside of sh blocks
-                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_deployment.yaml -n monitoring"
-                sh "kubectl apply -f projects/08-health-api-jenkins/k8s_service.yaml -n monitoring"
+                script {
+                    echo "Building Docker Image: ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
+                    sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
+                    // Also tag as latest for convenience
+                    sh "docker tag ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
 
-                // The "Brain" update: pointing K8s to the new specific version
-                sh "kubectl set image deployment/health-api health-api=${DOCKER_IMAGE} -n monitoring"
-                
-                sh "kubectl rollout status deployment/health-api -n monitoring"
+        stage('📤 Push to Docker Hub') {
+            steps {
+                // IMPORTANT: You must create 'docker-hub-creds' in Jenkins Credentials first!
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
+
+        stage('🚀 Deploy to Kubernetes') {
+            steps {
+                script {
+                    echo "Deploying to Kubernetes Namespace: ${K8S_NAMESPACE}"
+                    // This updates the container image in your existing deployment
+                    sh "kubectl set image deployment/health-app health-app=${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
+                    
+                    // Verifies the rollout is successful
+                    sh "kubectl rollout status deployment/health-app -n ${K8S_NAMESPACE}"
+                }
+            }
+        }
+
+        stage('🧪 Smoke Test') {
+            steps {
+                script {
+                    echo "Verifying application availability..."
+                    // We test the internal service name to ensure the cluster networking is up
+                    sh "kubectl exec -n ingress-nginx \$(kubectl get pods -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx -o jsonpath='{.items[0].metadata.name}') -- curl -s http://health-app-service.monitoring.svc.cluster.local/health"
+                }
             }
         }
     }
 
     post {
-        always {
-            echo '🧹 Post-build hygiene: Pruning images...'
-            sh 'docker image prune -f'
-        }
         success {
-            echo '✅ Success! The Handshake is complete.'
+            echo "✅ Success: Health API version ${IMAGE_TAG} is live at health.kaduna.hub!"
+        }
+        failure {
+            echo '❌ Failure: Check Jenkins logs for path or permission issues.'
+        }
+    }
+}CKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
+
+        stage('📤 Push to Docker Hub') {
+            steps {
+                // IMPORTANT: You must create 'docker-hub-creds' in Jenkins Credentials first!
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                }
+            }
+        }
+
+        stage('🚀 Deploy to Kubernetes') {
+            steps {
+                script {
+                    echo "Deploying to Kubernetes Namespace: ${K8S_NAMESPACE}"
+                    // This updates the container image in your existing deployment
+                    sh "kubectl set image deployment/health-app health-app=${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
+                    
+                    // Verifies the rollout is successful
+                    sh "kubectl rollout status deployment/health-app -n ${K8S_NAMESPACE}"
+                }
+            }
+        }
+
+        stage('🧪 Smoke Test') {
+            steps {
+                script {
+                    echo "Verifying application availability..."
+                    // We test the internal service name to ensure the cluster networking is up
+                    sh "kubectl exec -n ingress-nginx \$(kubectl get pods -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx -o jsonpath='{.items[0].metadata.name}') -- curl -s http://health-app-service.monitoring.svc.cluster.local/health"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Success: Health API version ${IMAGE_TAG} is live at health.kaduna.hub!"
         }
         failure {
             echo '❌ Failure: Check Jenkins logs for path or permission issues.'
