@@ -68,3 +68,32 @@ After the "Green Build" in Jenkins, the following state was verified:
 ---
 **Status:** Completed & Automated
 **Author:** Musa (DevOps & Production Support Engineer)
+
+
+## 🚥 Verification & Results
+
+After the pipeline completes, the successful automation is verified through the Jenkins build status and the live API responses.
+
+### 1. Automated CI/CD Execution
+The pipeline successfully automates the build, push, and deployment phases. Below is the confirmation of the green build in Jenkins.
+
+![Jenkins Build Success](assets/jenkins_success.png)
+*Figure 1: Jenkins Dashboard showing the successful completion of the Health API pipeline.*
+
+### 2. Live API Service Verification
+Once deployed, we verify the application's health and the Prometheus metrics integration through the Ingress controller.
+
+![Curl Verification](assets/curl_verification.png)
+*Figure 2: Terminal output verifying successful curl responses for /health and /metrics endpoints.*
+
+---
+
+## 🚦 Post-Deployment Commands
+To verify the deployment version manually in your terminal:
+```bash
+# Confirm the image version matches the Jenkins build number
+kubectl describe deployment health-api -n monitoring | grep Image
+
+# Test the endpoints via the Kaduna Hub domain
+curl -I [http://health.kaduna.hub/health](http://health.kaduna.hub/health)
+curl -I [http://health.kaduna.hub/metrics](http://health.kaduna.hub/metrics)
