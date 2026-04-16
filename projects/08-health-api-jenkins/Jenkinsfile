@@ -11,10 +11,12 @@ pipeline {
     stages {
         stage('🛠️ Build Docker Image') {
             steps {
-                script {
-                    echo "Building: ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
-                    sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
-                    sh "docker tag ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                dir('projects/08-health-api-jenkins') {
+                    script {
+                        echo "Building version ${IMAGE_TAG} from projects/08-health-api-jenkins..."
+                        sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
+                        sh "docker tag ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                    }
                 }
             }
         }
@@ -22,9 +24,11 @@ pipeline {
         stage('📤 Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
-                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                    script {
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
+                        sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
+                    }
                 }
             }
         }
@@ -32,6 +36,7 @@ pipeline {
         stage('🚀 Deploy to Kubernetes') {
             steps {
                 script {
+                    echo "Updating K8s deployment with image version: ${IMAGE_TAG}"
                     sh "kubectl set image deployment/health-app health-app=${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
                     sh "kubectl rollout status deployment/health-app -n ${K8S_NAMESPACE}"
                 }
@@ -41,10 +46,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment Successful!"
+            echo "✅ Deployment Successful! New version ${IMAGE_TAG} is live."
         }
         failure {
-            echo "❌ Deployment Failed. Check console output."
+            echo "❌ Deployment Failed. Review the console logs above."
         }
     }
 }
