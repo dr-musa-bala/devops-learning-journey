@@ -7,7 +7,10 @@ pipeline {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
         K8S_NAMESPACE = 'monitoring'
         // This links to the 'ID' you created in Jenkins Credentials
-        DOCKER_HUB_CREDS = credentials('docker-hub-credentials') 
+        DOCKER_HUB_CREDS = credentials('docker-hub-credentials')
+	MINIKUBE_IP = "192.168.49.2"
+	K8S_SERVER = "https://${MINIKUBE_IP}:8443"
+	KUBECONFIG = "/home/dr-musa/.kube/config" 
     }
 
     stages {
@@ -31,9 +34,10 @@ pipeline {
         stage('☸️ Deploy to Kubernetes') {
             steps {
                 dir('projects/08-health-api-jenkins') {
-                    // This replaces the image tag in your YAML with the current Build Number
+        	    script {           
+	 // This replaces the image tag in your YAML with the current Build Number
                     sh "sed -i 's|image:.*|image: docker.io/${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}|g' k8s_deployment.yaml"
-                    sh "kubectl apply -f k8s_deployment.yaml -n ${K8S_NAMESPACE}"
+                    sh "kubectl apply -f k8s_deployment.yaml -n ${K8S_NAMESPACE} --validate=false"
                 }
             }
         }
