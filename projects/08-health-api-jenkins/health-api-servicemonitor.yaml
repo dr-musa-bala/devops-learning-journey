@@ -4,15 +4,12 @@ metadata:
   name: health-api-monitor
   namespace: monitoring
   labels:
-    release: monitoring  # CRITICAL: This connects it to your stack
+    release: monitoring  # This must match your kube-prometheus-stack release name
 spec:
   selector:
     matchLabels:
-      app: health-api    # Must match the label in your health-api-service
-  namespaceSelector:
-    matchNames:
-    - default           # Where your health-api app is running
+      app: health-api    # This matches your Service label
   endpoints:
-  - port: http          # We need to make sure your service port is named 'http'
+  - port: http           # This refers to the port NAME in your Service (usually 80)
     path: /metrics
-    interval: 15s
+    interval: 30s

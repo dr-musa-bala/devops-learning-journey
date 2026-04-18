@@ -2,55 +2,47 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_USER = 'musabalaaudu' 
-        APP_NAME = 'health-api' // Matched to your K8s deployment name
-        IMAGE_TAG = "${env.BUILD_NUMBER}" 
-        K8S_NAMESPACE = 'monitoring' // Correct namespace
+        DOCKER_HUB_USER = 'musabalaaudu'
+        APP_NAME = 'health-api'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        K8S_NAMESPACE = 'monitoring'
+        // This links to the 'ID' you created in Jenkins Credentials
+        DOCKER_HUB_CREDS = credentials('docker-hub-credentials') 
     }
 
     stages {
         stage('🛠️ Build Docker Image') {
             steps {
+                // Ensure we are in the correct project directory
                 dir('projects/08-health-api-jenkins') {
-                    script {
-                        echo "Building version ${IMAGE_TAG}..."
-                        sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
-                        sh "docker tag ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ${DOCKER_HUB_USER}/${APP_NAME}:latest"
-                    }
+                    sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
                 }
             }
         }
 
-        stage('📤 Push to Docker Hub') {
+        stage('🚀 Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    script {
-                        sh "echo $PASS | docker login -u $USER --password-stdin"
-                        sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
-                        sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:latest"
-                    }
-                }
+                // This is the missing piece! It logs you in so you can push.
+                sh "echo \$DOCKER_HUB_CREDS_PSW | docker login -u \$DOCKER_HUB_CREDS_USR --password-stdin"
+                sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
             }
         }
 
-        stage('🚀 Deploy to Kubernetes') {
+        stage('☸️ Deploy to Kubernetes') {
             steps {
-                script {
-                    echo "Updating K8s deployment '${APP_NAME}' in namespace '${K8S_NAMESPACE}'"
-                    // Corrected command: deployment/health-api
-                    sh "kubectl set image deployment/${APP_NAME} ${APP_NAME}=${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} -n ${K8S_NAMESPACE}"
-                    sh "kubectl rollout status deployment/${APP_NAME} -n ${K8S_NAMESPACE}"
+                dir('projects/08-health-api-jenkins') {
+                    // This replaces the image tag in your YAML with the current Build Number
+                    sh "sed -i 's|image:.*|image: docker.io/${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}|g' k8s_deployment.yaml"
+                    sh "kubectl apply -f k8s_deployment.yaml -n ${K8S_NAMESPACE}"
                 }
             }
         }
     }
-
+    
     post {
-        success {
-            echo "✅ SUCCESS! Project 08 is fully automated and live."
-        }
-        failure {
-            echo "❌ Still failing? Check if the container name inside the pod is also 'health-api'."
+        always {
+            // Good practice: logout so your credentials aren't left on the Jenkins runner
+            sh "docker logout"
         }
     }
 }
