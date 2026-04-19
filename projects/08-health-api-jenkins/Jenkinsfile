@@ -19,7 +19,7 @@ pipeline {
                 dir("${PROJECT_DIR}") {
                     script {
                         echo "Building version ${IMAGE_TAG} in ${PROJECT_DIR}..."
-                        sh "docker build --network=host --dns=8.8.8.8 -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
+                        sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
                     }
                 }
             }
