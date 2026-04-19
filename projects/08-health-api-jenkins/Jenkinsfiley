@@ -1,0 +1,69 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_HUB_USER = 'musabalaaudu'
+        APP_NAME = 'health-api'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        K8S_NAMESPACE = 'monitoring'
+        // This ID must match your 'Username with Password' credential in Jenkins
+        DOCKER_HUB_CREDS = credentials('docker-hub-credentials') 
+        // Explicitly point to your kubeconfig so the 'jenkins' user has cluster access
+        KUBECONFIG = '/home/dr-musa/.kube/config'
+        PROJECT_DIR = 'projects/08-health-api-jenkins'
+    }
+
+    stages {
+        stage('🏗️ Build Docker Image') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    script {
+                        echo "Building version ${IMAGE_TAG} in ${PROJECT_DIR}..."
+                        sh "docker build -t ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG} ."
+                    }
+                }
+            }
+        }
+
+        stage('🚀 Push to Docker Hub') {
+            steps {
+                script {
+                    // Authenticate and push the new build
+                    sh "echo \$DOCKER_HUB_CREDS_PSW | docker login -u \$DOCKER_HUB_CREDS_USR --password-stdin"
+                    sh "docker push ${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('☸️ Deploy to Kubernetes') {
+            steps {
+                dir("${PROJECT_DIR}") {
+                    script {
+                        // 1. Update the YAML file with the new build number dynamically
+                        sh "sed -i 's|image:.*|image: docker.io/${DOCKER_HUB_USER}/${APP_NAME}:${IMAGE_TAG}|g' k8s_deployment.yaml"
+                        
+                        // 2. Apply the configuration. 
+                        // --validate=false is critical to bypass the 127.0.0.1:62103 connection error.
+                        sh "kubectl apply -f k8s_deployment.yaml -n ${K8S_NAMESPACE} --validate=false"
+                        
+                        // 3. Verify the deployment is rolling out
+                        sh "kubectl rollout status deployment/health-app-stack -n ${K8S_NAMESPACE}"
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Successfully deployed Build #${IMAGE_TAG} to the Kaduna-Axis-DC!"
+        }
+        failure {
+            echo "Build #${IMAGE_TAG} failed. Check the console output for troubleshooting."
+        }
+        always {
+            // Securely log out of Docker Hub on the Jenkins node
+            sh "docker logout"
+        }
+    }
+}

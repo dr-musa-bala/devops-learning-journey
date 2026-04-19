@@ -97,3 +97,6 @@ kubectl describe deployment health-api -n monitoring | grep Image
 # Test the endpoints via the Kaduna Hub domain
 curl -I [http://health.kaduna.hub/health](http://health.kaduna.hub/health)
 curl -I [http://health.kaduna.hub/metrics](http://health.kaduna.hub/metrics)
+
+---
+
