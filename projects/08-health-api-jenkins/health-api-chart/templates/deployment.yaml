@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: health-app-stack        # <--- This must be a simple name
+  namespace: {{ .Values.namespace }}            # <--- Ensure this matches your Service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: health-app-stack
+  template:
+    metadata:
+      labels:
+        app: health-app-stack
+    spec:
+      containers:
+      - name: health-api
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"  # <--- The "slash" belongs HERE
+        ports:
+        - containerPort: 80
