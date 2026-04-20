@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "health-api-chart.fullname" . }}
+  labels:
+    release: monitoring # This MUST match the label the Operator looks for
+    app: health-api
+spec:
+  selector:
+    matchLabels:
+      app: health-api # Matches the label in your Service.yaml
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
