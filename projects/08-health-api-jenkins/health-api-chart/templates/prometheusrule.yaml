@@ -1,0 +1,18 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "health-api-chart.fullname" . }}-alerts
+  labels:
+    release: monitoring # Must match your Prometheus stack label
+spec:
+  groups:
+  - name: HealthAPIAlerts
+    rules:
+    - alert: HealthApiDown
+      expr: up{app="health-api"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Health API is DOWN in Kaduna Environment"
+        description: "The Health API has been down for more than 2 minutes. Check the Jenkins Build #{{ .Values.image.tag }} logs."
