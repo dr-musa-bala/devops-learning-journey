@@ -11,7 +11,7 @@ spec:
   - name: HealthAPIAlerts
     rules:
     - alert: HealthApiDown
-      expr: up{app="health-api"} == 0
+      expr: absense(up{service="health-app-service"}) or up{service="health-app-service"} == 0
       for: 1m
       labels:
         severity: critical
