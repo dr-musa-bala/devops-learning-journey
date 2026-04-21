@@ -2,15 +2,17 @@ apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
   name: {{ include "health-api-chart.fullname" . }}-alerts
+  namespace: {{ .Values.namespace | default "monitoring" }}
   labels:
     release: monitoring # Must match your Prometheus stack label
+    app: kube-prometheus-stack
 spec:
   groups:
   - name: HealthAPIAlerts
     rules:
     - alert: HealthApiDown
       expr: up{app="health-api"} == 0
-      for: 2m
+      for: 1m
       labels:
         severity: critical
       annotations:
